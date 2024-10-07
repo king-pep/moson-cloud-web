@@ -1,7 +1,7 @@
 export const exchangeCodeForTokens = async (authorizationCode) => {
     const tokenUrl = 'https://alpha.mosontech.co.za/realms/db-manager/protocol/openid-connect/token';
     const clientId = 'docker-db-inst';
-    const redirectUri = 'http://localhost:3000/callback';
+    const redirectUri = 'https://mosoncloud.mosontech.co.za/callback';
 
     const data = new URLSearchParams();
     data.append('grant_type', 'authorization_code');
