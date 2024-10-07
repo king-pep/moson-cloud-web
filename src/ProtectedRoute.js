@@ -1,23 +1,55 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Route } from 'react-router-dom';
 import { redirectToLogin } from './redirectToLogin';
+import { refreshAccessToken } from './refreshTokenService';
+
+const isTokenExpired = (token) => {
+    if (!token) return true;
+    const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+    const expiryTime = tokenPayload.exp * 1000;
+    return Date.now() > expiryTime;
+};
 
 const ProtectedRoute = ({ component: Component, ...rest }) => {
-    const accessToken = localStorage.getItem('access_token');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        const accessToken = localStorage.getItem('access_token');
+        const refreshToken = localStorage.getItem('refresh_token');
+
+        if (isTokenExpired(accessToken)) {
+            console.log('Access token expired, attempting to refresh');
+
+            if (refreshToken && !isTokenExpired(refreshToken)) {
+                refreshAccessToken().then((success) => {
+                    if (success) {
+                        setIsAuthenticated(true);
+                    } else {
+                        console.log('Refresh token expired, redirecting to login');
+                        localStorage.setItem('nextUrl', window.location.pathname);
+                        redirectToLogin();
+                    }
+                });
+            } else {
+                console.log('Both tokens are expired, redirecting to login');
+                localStorage.setItem('nextUrl', window.location.pathname);
+                redirectToLogin();
+            }
+        } else {
+            setIsAuthenticated(true);
+        }
+    }, []);
 
     return (
         <Route
             {...rest}
-            render={(props) => {
-                if (accessToken) {
-                    console.log('Rendering protected component:', Component);
-                    return <Component {...props} />;
-                } else {
-                    console.log('Redirecting to login');
-                    localStorage.setItem('nextUrl', props.location.pathname);
-                    return redirectToLogin();
-                }
-            }}
+            render={(props) =>
+                isAuthenticated ? (
+                    <Component {...props} />
+                ) : (
+                    <div>Loading...</div>
+                )
+            }
         />
     );
 };
