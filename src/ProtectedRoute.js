@@ -3,18 +3,21 @@ import { Route } from 'react-router-dom';
 import { redirectToLogin } from './redirectToLogin';
 
 const ProtectedRoute = ({ component: Component, ...rest }) => {
-    const accessToken = localStorage.getItem('access_token'); // Check if the access token is present
+    const accessToken = localStorage.getItem('access_token');
 
     return (
         <Route
             {...rest}
-            render={(props) =>
-                accessToken ? (
-                    <Component {...props} /> // Render the component if the user is authenticated
-                ) : (
-                    redirectToLogin() // Redirect to Keycloak login if not authenticated
-                )
-            }
+            render={(props) => {
+                if (accessToken) {
+                    console.log('Rendering protected component:', Component);
+                    return <Component {...props} />;
+                } else {
+                    console.log('Redirecting to login');
+                    localStorage.setItem('nextUrl', props.location.pathname);
+                    return redirectToLogin();
+                }
+            }}
         />
     );
 };
