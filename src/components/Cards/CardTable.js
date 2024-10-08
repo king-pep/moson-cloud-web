@@ -141,7 +141,6 @@ export default function CardTable({color}) {
                 </div>
             </div>
 
-            // Updated modal for showing connection string with colors
             <Modal open={showConnectionModal} onClose={() => setShowConnectionModal(false)}>
                 <Box
                     sx={{
