@@ -17,7 +17,6 @@ export default function CardTable({color}) {
     const [selectedDatabase, setSelectedDatabase] = useState(null);
     const [showConnectionString, setShowConnectionString] = useState(false);
 
-    // Function to fetch the list of databases
     const fetchDatabases = async () => {
         const token = localStorage.getItem("access_token");
         const url = "http://160.119.250.107:5000/api/v1/infra/databases/list";
@@ -44,7 +43,6 @@ export default function CardTable({color}) {
         }
     };
 
-    // Function to create a new database
     const createDatabase = async () => {
         const token = localStorage.getItem("access_token");
         const url = "http://160.119.250.107:5000/api/v1/infra/containers/create";
@@ -60,8 +58,8 @@ export default function CardTable({color}) {
             });
 
             if (response.ok) {
-                await fetchDatabases(); // Refresh the list of databases after creation
-                setShowModal(false); // Close the modal after successful creation
+                await fetchDatabases();
+                setShowModal(false);
             } else {
                 console.error("Error creating database:", response.statusText);
             }
@@ -70,14 +68,12 @@ export default function CardTable({color}) {
         }
     };
 
-    // Function to handle "Connect" button click
     const handleConnectClick = (db) => {
         setSelectedDatabase(db);
-        setShowConnectionString(false); // Reset to hide the connection string initially
+        setShowConnectionString(false);
         setShowConnectionModal(true);
     };
 
-    // useEffect to call fetchDatabases when the component mounts
     useEffect(() => {
         fetchDatabases();
     }, []);
@@ -153,11 +149,11 @@ export default function CardTable({color}) {
                         p: 4,
                         borderRadius: 2,
                         boxShadow: 24,
-                        maxWidth: '80%',  // Set the maximum width to 80% of the viewport width
-                        minWidth: 400,    // Ensure a minimum width of 400px for smaller screens
+                        maxWidth: '80%',
+                        minWidth: 400,
                         mx: 'auto',
-                        mt: '20vh',       // Center the modal vertically
-                        overflow: 'auto'  // Allow scrolling if the content overflows
+                        mt: '20vh',
+                        overflow: 'auto'
                     }}
                 >
                     <Typography variant="h6" component="h2">Database Connection</Typography>
@@ -184,7 +180,6 @@ export default function CardTable({color}) {
                 </Box>
             </Modal>
 
-            {/* Modal for creating a new database using MUI */}
             <Modal open={showModal} onClose={() => setShowModal(false)}>
                 <Box sx={{
                     bgcolor: 'background.paper',
