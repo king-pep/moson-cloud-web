@@ -1,27 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
+import {Modal, Box, Button, Typography, TextField, Select, MenuItem} from "@mui/material";
 
 // components
-//import TableDropdown from "components/Dropdowns/TableDropdown.js";
+import TableDropdown from "components/Dropdowns/TableDropdown.js";
 
-export default function CardTable({ color }) {
+export default function CardTable({color}) {
     const [databases, setDatabases] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showConnectionModal, setShowConnectionModal] = useState(false);
     const [newDatabase, setNewDatabase] = useState({
         database_name: "",
         database_type: "mysql",
     });
+    const [selectedDatabase, setSelectedDatabase] = useState(null);
+    const [showConnectionString, setShowConnectionString] = useState(false);
 
-    const [showPasswords, setShowPasswords] = useState({});
-
-    const togglePasswordVisibility = (index) => {
-        setShowPasswords((prevState) => ({
-            ...prevState,
-            [index]: !prevState[index],
-        }));
-    };
-
+    // Function to fetch the list of databases
     const fetchDatabases = async () => {
         const token = localStorage.getItem("access_token");
         const url = "http://160.119.250.107:5000/api/v1/infra/databases/list";
@@ -64,8 +60,8 @@ export default function CardTable({ color }) {
             });
 
             if (response.ok) {
-                await fetchDatabases();
-                setShowModal(false);
+                await fetchDatabases(); // Refresh the list of databases after creation
+                setShowModal(false); // Close the modal after successful creation
             } else {
                 console.error("Error creating database:", response.statusText);
             }
@@ -74,6 +70,14 @@ export default function CardTable({ color }) {
         }
     };
 
+    // Function to handle "Connect" button click
+    const handleConnectClick = (db) => {
+        setSelectedDatabase(db);
+        setShowConnectionString(false); // Reset to hide the connection string initially
+        setShowConnectionModal(true);
+    };
+
+    // useEffect to call fetchDatabases when the component mounts
     useEffect(() => {
         fetchDatabases();
     }, []);
@@ -98,70 +102,42 @@ export default function CardTable({ color }) {
                                 User Databases
                             </h3>
                         </div>
-                        <button
-                            className="bg-lightBlue-500 text-white active:bg-lightBlue-600 font-bold uppercase text-xs px-4 py-2 rounded shadow hover:shadow-md outline-none focus:outline-none mr-1 ease-linear transition-all duration-150"
-                            type="button"
-                            onClick={() => setShowModal(true)}
-                        >
+                        <Button variant="contained" color="primary" onClick={() => setShowModal(true)}>
                             Create Database
-                        </button>
+                        </Button>
                     </div>
                 </div>
 
                 <div className="block w-full overflow-x-auto">
-                    {/* Database table */}
                     <table className="items-center w-full bg-transparent border-collapse">
                         <thead>
                         <tr>
-                            <th className="px-6 py-3 border-b text-left">Container Name</th>
                             <th className="px-6 py-3 border-b text-left">Database Name</th>
                             <th className="px-6 py-3 border-b text-left">Database Type</th>
-                            <th className="px-6 py-3 border-b text-left">Username</th>
-                            <th className="px-6 py-3 border-b text-left">Port</th>
-                            <th className="px-6 py-3 border-b text-left">Password</th>
+                            <th className="px-6 py-3 border-b text-left">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="6" className="text-center py-4">Loading...</td>
+                                <td colSpan="3" className="text-center py-4">Loading...</td>
                             </tr>
                         ) : databases.length > 0 ? (
                             databases.map((db, index) => (
                                 <tr key={index}>
-                                    <td className="px-6 py-4 border-t text-left">{db.container_name}</td>
                                     <td className="px-6 py-4 border-t text-left">{db.database_name}</td>
                                     <td className="px-6 py-4 border-t text-left">{db.database_type}</td>
-                                    <td className="px-6 py-4 border-t text-left">{db.username}</td>
-                                    <td className="px-6 py-4 border-t text-left">{db.port}</td>
                                     <td className="px-6 py-4 border-t text-left">
-                                        {showPasswords[index] ? (
-                                            <>
-                                                {db.password}
-                                                <button
-                                                    className="ml-2 text-blue-500 hover:underline"
-                                                    onClick={() => togglePasswordVisibility(index)}
-                                                >
-                                                    Hide
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                ****
-                                                <button
-                                                    className="ml-2 text-blue-500 hover:underline"
-                                                    onClick={() => togglePasswordVisibility(index)}
-                                                >
-                                                    Show
-                                                </button>
-                                            </>
-                                        )}
+                                        <Button variant="contained" color="primary"
+                                                onClick={() => handleConnectClick(db)}>
+                                            Connect
+                                        </Button>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="6" className="text-center py-4">No databases found for this user.</td>
+                                <td colSpan="3" className="text-center py-4">No databases found for this user.</td>
                             </tr>
                         )}
                         </tbody>
@@ -169,61 +145,84 @@ export default function CardTable({ color }) {
                 </div>
             </div>
 
-            {/* Modal for creating a new database */}
-            {showModal ? (
-                <>
-                    <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-                        <div className="relative w-auto my-6 mx-auto max-w-3xl">
-                            <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-                                <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
-                                    <h3 className="text-3xl font-semibold">Create New Database</h3>
-                                    <button
-                                        className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        <span className="bg-transparent text-black opacity-5 h-6 w-6 text-2xl block outline-none focus:outline-none">×</span>
-                                    </button>
-                                </div>
-                                <div className="relative p-6 flex-auto">
-                                    <input
-                                        type="text"
-                                        placeholder="Database Name"
-                                        className="border border-gray-300 rounded px-4 py-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={newDatabase.database_name}
-                                        onChange={(e) => setNewDatabase({ ...newDatabase, database_name: e.target.value })}
-                                    />
-                                    <select
-                                        className="border border-gray-300 rounded px-4 py-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={newDatabase.database_type}
-                                        onChange={(e) => setNewDatabase({ ...newDatabase, database_type: e.target.value })}
-                                    >
-                                        <option value="mysql">MySQL</option>
-                                        <option value="postgres">PostgreSQL</option>
-                                        <option value="mongodb">MongoDB</option>
-                                    </select>
-                                </div>
-                                <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
-                                    <button
-                                        className="text-red-500 background-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                        type="button"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        className="bg-green-500 text-white active:bg-green-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                        type="button"
-                                        onClick={createDatabase}
-                                    >
-                                        Create
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="opacity-25 fixed inset-0 z-40 bg-black"></div>
-                </>
-            ) : null}
+            // Updated modal for showing connection string with colors
+            <Modal open={showConnectionModal} onClose={() => setShowConnectionModal(false)}>
+                <Box
+                    sx={{
+                        bgcolor: 'background.paper',
+                        p: 4,
+                        borderRadius: 2,
+                        boxShadow: 24,
+                        maxWidth: '80%',  // Set the maximum width to 80% of the viewport width
+                        minWidth: 400,    // Ensure a minimum width of 400px for smaller screens
+                        mx: 'auto',
+                        mt: '20vh',       // Center the modal vertically
+                        overflow: 'auto'  // Allow scrolling if the content overflows
+                    }}
+                >
+                    <Typography variant="h6" component="h2">Database Connection</Typography>
+                    {selectedDatabase && (
+                        <Typography variant="body1" sx={{mt: 2, wordBreak: 'break-all'}}>
+                            Connection String: {showConnectionString ? (
+                            <span>
+                        <span style={{color: '#FF5722'}}>{selectedDatabase.database_type}://</span>
+                        <span style={{color: '#3F51B5'}}>{selectedDatabase.username}</span>
+                        <span style={{color: '#F44336'}}>:{selectedDatabase.password}</span><span
+                                style={{color: '#FF5722'}}>@</span>
+                        <span style={{color: '#4CAF50'}}>host</span>
+                        <span style={{color: '#FF9800'}}>: {selectedDatabase.port}</span>
+                        <span style={{color: '#9C27B0'}}>/</span>
+                        <span style={{color: '#3F51B5'}}>{selectedDatabase.database_name}</span>
+                    </span>
+                        ) : "************"}
+                        </Typography>
+                    )}
+                    <Button variant="outlined" sx={{mt: 2}}
+                            onClick={() => setShowConnectionString(!showConnectionString)}>
+                        {showConnectionString ? "Hide Connection String" : "Show Connection String"}
+                    </Button>
+                </Box>
+            </Modal>
+
+            {/* Modal for creating a new database using MUI */}
+            <Modal open={showModal} onClose={() => setShowModal(false)}>
+                <Box sx={{
+                    bgcolor: 'background.paper',
+                    p: 4,
+                    borderRadius: 2,
+                    boxShadow: 24,
+                    maxWidth: 500,
+                    mx: 'auto',
+                    mt: '20vh'
+                }}>
+                    <Typography variant="h6" component="h2">Create New Database</Typography>
+                    <TextField
+                        fullWidth
+                        label="Database Name"
+                        variant="outlined"
+                        margin="normal"
+                        value={newDatabase.database_name}
+                        onChange={(e) => setNewDatabase({...newDatabase, database_name: e.target.value})}
+                    />
+                    <Select
+                        fullWidth
+                        value={newDatabase.database_type}
+                        onChange={(e) => setNewDatabase({...newDatabase, database_type: e.target.value})}
+                        variant="outlined"
+                        margin="normal"
+                    >
+                        <MenuItem value="mysql">MySQL</MenuItem>
+                        <MenuItem value="postgres">PostgreSQL</MenuItem>
+                        <MenuItem value="mongodb">MongoDB</MenuItem>
+                    </Select>
+                    <Button variant="contained" color="primary" sx={{mt: 2}} onClick={createDatabase}>
+                        Create Database
+                    </Button>
+                    <Button variant="text" sx={{mt: 2}} onClick={() => setShowModal(false)}>
+                        Cancel
+                    </Button>
+                </Box>
+            </Modal>
         </>
     );
 }
