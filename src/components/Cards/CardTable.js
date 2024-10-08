@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import {Modal, Box, Button, Typography, TextField, Select, MenuItem} from "@mui/material";
 
 // components
-import TableDropdown from "components/Dropdowns/TableDropdown.js";
+//import TableDropdown from "components/Dropdowns/TableDropdown.js";
 
 export default function CardTable({color}) {
     const [databases, setDatabases] = useState([]);
