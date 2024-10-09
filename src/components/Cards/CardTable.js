@@ -1,13 +1,11 @@
 import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
-import {Modal, Box, Button, Typography, TextField, Select, MenuItem} from "@mui/material";
-
-// components
-//import TableDropdown from "components/Dropdowns/TableDropdown.js";
+import {Modal, Box, Button, Typography, TextField, Select, MenuItem, Alert} from "@mui/material";
 
 export default function CardTable({color}) {
     const [databases, setDatabases] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showConnectionModal, setShowConnectionModal] = useState(false);
     const [newDatabase, setNewDatabase] = useState({
@@ -19,7 +17,7 @@ export default function CardTable({color}) {
 
     const fetchDatabases = async () => {
         const token = localStorage.getItem("access_token");
-        const url = "http://160.119.250.107:5000/api/v1/infra/databases/list";
+        const url = "https://api-dev.mosontech.co.za/api/v1/infra/databases/list";
 
         try {
             const response = await fetch(url, {
@@ -30,13 +28,16 @@ export default function CardTable({color}) {
                 },
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                setDatabases(data.databases);
+            const data = await response.json();
+            if (data.resultCode === 0) {
+                setDatabases(data.payload || []); // Correctly handle the payload array
+                setErrorMessage(null); // Clear any previous error messages
             } else {
-                console.error("Error fetching databases:", response.statusText);
+                setErrorMessage(data.friendlyCustomerMessage || "An error occurred while fetching databases.");
+                setDatabases([]); // Clear the list if there's an error
             }
         } catch (error) {
+            setErrorMessage("Network error occurred while fetching databases.");
             console.error("Network error:", error);
         } finally {
             setLoading(false);
@@ -45,7 +46,7 @@ export default function CardTable({color}) {
 
     const createDatabase = async () => {
         const token = localStorage.getItem("access_token");
-        const url = "http://160.119.250.107:5000/api/v1/infra/containers/create";
+        const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/create";
 
         try {
             const response = await fetch(url, {
@@ -57,13 +58,16 @@ export default function CardTable({color}) {
                 body: JSON.stringify(newDatabase),
             });
 
-            if (response.ok) {
-                await fetchDatabases();
+            const data = await response.json();
+            if (data.resultCode === 0) {
+                await fetchDatabases(); // Refresh the list of databases after creation
                 setShowModal(false);
+                setErrorMessage(null); // Clear any previous error messages
             } else {
-                console.error("Error creating database:", response.statusText);
+                setErrorMessage(data.friendlyCustomerMessage || "An error occurred while creating the database.");
             }
         } catch (error) {
+            setErrorMessage("Network error occurred while creating the database.");
             console.error("Network error:", error);
         }
     };
@@ -81,20 +85,11 @@ export default function CardTable({color}) {
     return (
         <>
             <div
-                className={
-                    "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
-                    (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
-                }
-            >
+                className={`relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded ${color === "light" ? "bg-white" : "bg-lightBlue-900 text-white"}`}>
                 <div className="rounded-t mb-0 px-4 py-3 border-0">
                     <div className="flex flex-wrap items-center justify-between">
                         <div className="relative w-full px-4 max-w-full flex-grow flex-1">
-                            <h3
-                                className={
-                                    "font-semibold text-lg " +
-                                    (color === "light" ? "text-blueGray-700" : "text-white")
-                                }
-                            >
+                            <h3 className={`font-semibold text-lg ${color === "light" ? "text-blueGray-700" : "text-white"}`}>
                                 User Databases
                             </h3>
                         </div>
@@ -105,6 +100,11 @@ export default function CardTable({color}) {
                 </div>
 
                 <div className="block w-full overflow-x-auto">
+                    {errorMessage && (
+                        <Alert severity="error" sx={{my: 2}}>
+                            {errorMessage}
+                        </Alert>
+                    )}
                     <table className="items-center w-full bg-transparent border-collapse">
                         <thead>
                         <tr>
@@ -152,7 +152,7 @@ export default function CardTable({color}) {
                         minWidth: 400,
                         mx: 'auto',
                         mt: '20vh',
-                        overflow: 'auto'
+                        overflow: 'auto',
                     }}
                 >
                     <Typography variant="h6" component="h2">Database Connection</Typography>
@@ -160,15 +160,15 @@ export default function CardTable({color}) {
                         <Typography variant="body1" sx={{mt: 2, wordBreak: 'break-all'}}>
                             Connection String: {showConnectionString ? (
                             <span>
-                        <span style={{color: '#FF5722'}}>{selectedDatabase.database_type}://</span>
-                        <span style={{color: '#3F51B5'}}>{selectedDatabase.username}</span>
-                        <span style={{color: '#F44336'}}>:{selectedDatabase.password}</span><span
-                                style={{color: '#FF5722'}}>@</span>
-                        <span style={{color: '#4CAF50'}}>host</span>
-                        <span style={{color: '#FF9800'}}>: {selectedDatabase.port}</span>
-                        <span style={{color: '#9C27B0'}}>/</span>
-                        <span style={{color: '#3F51B5'}}>{selectedDatabase.database_name}</span>
-                    </span>
+        <span style={{color: '#FF5722'}}>{selectedDatabase.database_type}://</span>
+        <span style={{color: '#3F51B5'}}>{selectedDatabase.username}</span>
+        <span style={{color: '#F44336'}}>:{selectedDatabase.password}</span>
+        <span style={{color: '#FF5722'}}>@</span>
+        <span style={{color: '#4CAF50'}}>{selectedDatabase.host}</span> {/* Updated to display subdomain as host */}
+                                <span style={{color: '#FF9800'}}>: {selectedDatabase.port}</span>
+        <span style={{color: '#9C27B0'}}>/</span>
+        <span style={{color: '#3F51B5'}}>{selectedDatabase.database_name}</span>
+    </span>
                         ) : "************"}
                         </Typography>
                     )}
