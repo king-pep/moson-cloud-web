@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { exchangeCodeForTokens } from './tokenService'; // Function to exchange code for tokens
 import { useHistory } from 'react-router-dom';
+import './spinner.css';
+import {ClipLoader} from "react-spinners";
 
 const Callback = () => {
     const history = useHistory();
@@ -23,7 +25,12 @@ const Callback = () => {
         }
     }, [history]);
 
-    return <div>Logging in...</div>;
+    return (
+        <div className="spinner-container">
+            <ClipLoader size={100} color={"#123abc"} loading={true}/>
+        </div>
+    );
 };
+
 
 export default Callback;

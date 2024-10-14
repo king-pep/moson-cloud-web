@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Route } from 'react-router-dom';
-import { redirectToLogin } from './redirectToLogin';
-import { refreshAccessToken } from './refreshTokenService';
+import React, {useEffect, useState} from 'react';
+import {Route} from 'react-router-dom';
+import {redirectToLogin} from './redirectToLogin';
+import {refreshAccessToken} from './refreshTokenService';
+import {ClipLoader} from 'react-spinners';
+import './spinner.css';
 
 const isTokenExpired = (token) => {
     if (!token) return true;
@@ -12,6 +14,7 @@ const isTokenExpired = (token) => {
 
 const ProtectedRoute = ({ component: Component, ...rest }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const accessToken = localStorage.getItem('access_token');
@@ -22,6 +25,7 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
 
             if (refreshToken && !isTokenExpired(refreshToken)) {
                 refreshAccessToken().then((success) => {
+                    setIsLoading(false);
                     if (success) {
                         setIsAuthenticated(true);
                     } else {
@@ -37,6 +41,7 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
             }
         } else {
             setIsAuthenticated(true);
+            setIsLoading(false);
         }
     }, []);
 
@@ -44,7 +49,11 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
         <Route
             {...rest}
             render={(props) =>
-                isAuthenticated ? (
+                isLoading ? (
+                    <div className="spinner-container">
+                        <ClipLoader size={100} color={"#123abc"} loading={true} />
+                    </div>
+                ) : isAuthenticated ? (
                     <Component {...props} />
                 ) : (
                     <div>Loading...</div>
@@ -53,5 +62,4 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
         />
     );
 };
-
 export default ProtectedRoute;
