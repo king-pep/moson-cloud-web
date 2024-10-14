@@ -30,17 +30,41 @@ export default function CardTable({color}) {
 
             const data = await response.json();
             if (data.resultCode === 0) {
-                setDatabases(data.payload || []); // Correctly handle the payload array
-                setErrorMessage(null); // Clear any previous error messages
+                setDatabases(data.payload || []);
+                setErrorMessage(null);
             } else {
                 setErrorMessage(data.friendlyCustomerMessage || "An error occurred while fetching databases.");
-                setDatabases([]); // Clear the list if there's an error
+                setDatabases([]);
             }
         } catch (error) {
             setErrorMessage("Network error occurred while fetching databases.");
             console.error("Network error:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchUserInfo = async () => {
+        const token = localStorage.getItem("access_token");
+        const url = "https://alpha.mosontech.co.za/realms/db-manager/protocol/openid-connect/userinfo";
+
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("User Info:", data);
+            } else {
+                console.error("Failed to fetch user info:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error fetching user info:", error);
         }
     };
 
@@ -60,9 +84,9 @@ export default function CardTable({color}) {
 
             const data = await response.json();
             if (data.resultCode === 0) {
-                await fetchDatabases(); // Refresh the list of databases after creation
+                await fetchDatabases();
                 setShowModal(false);
-                setErrorMessage(null); // Clear any previous error messages
+                setErrorMessage(null);
             } else {
                 setErrorMessage(data.friendlyCustomerMessage || "An error occurred while creating the database.");
             }
@@ -80,6 +104,7 @@ export default function CardTable({color}) {
 
     useEffect(() => {
         fetchDatabases();
+        fetchUserInfo();  // Fetch user info when the component mounts
     }, []);
 
     return (
@@ -164,7 +189,7 @@ export default function CardTable({color}) {
         <span style={{color: '#3F51B5'}}>{selectedDatabase.username}</span>
         <span style={{color: '#F44336'}}>:{selectedDatabase.password}</span>
         <span style={{color: '#FF5722'}}>@</span>
-        <span style={{color: '#4CAF50'}}>{selectedDatabase.host}</span> {/* Updated to display subdomain as host */}
+        <span style={{color: '#4CAF50'}}>{selectedDatabase.host}</span>
                                 <span style={{color: '#FF9800'}}>: {selectedDatabase.port}</span>
         <span style={{color: '#9C27B0'}}>/</span>
         <span style={{color: '#3F51B5'}}>{selectedDatabase.database_name}</span>

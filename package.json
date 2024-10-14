@@ -1,5 +1,5 @@
 {
-  "name": "notus-react",
+  "name": "moson-cloud",
   "version": "1.1.0",
   "description": "Notus React - A free Tailwind CSS and React UI Kit and Admin by Creative Tim.",
   "repository": "https://github.com/creativetimofficial/notus-react",
@@ -13,6 +13,7 @@
     "@react-keycloak/web": "^3.4.0",
     "@tailwindcss/forms": "0.2.1",
     "autoprefixer": "10.2.5",
+    "axios": "^1.7.7",
     "chart.js": "2.9.4",
     "gulp": "4.0.2",
     "gulp-append-prepend": "1.0.8",
