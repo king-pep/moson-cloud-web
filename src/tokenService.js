@@ -1,7 +1,7 @@
 export const exchangeCodeForTokens = async (authorizationCode) => {
     const tokenUrl = 'https://alpha.mosontech.co.za/realms/db-manager/protocol/openid-connect/token';
     const clientId = 'docker-db-inst';
-    const redirectUri = 'https://mosoncloud.mosontech.co.za/callback';
+    const redirectUri = 'https://alpha.mosontech.co.za/callback';
     const clientSecret = 'pXFYAnX1I6XUIxxZ5biDqRNalALHEUQl';
 
 
@@ -30,4 +30,14 @@ export const exchangeCodeForTokens = async (authorizationCode) => {
     } else {
         console.error('Error fetching tokens:', response.statusText);
     }
+};
+export const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    const keycloakServer = 'https://alpha.mosontech.co.za';
+    const realmName = 'db-manager';
+
+    const logoutUrl = `${keycloakServer}/realms/${realmName}/protocol/openid-connect/logout`;
+    console.log("Logout URL:", logoutUrl);
+    window.location.href = logoutUrl;
 };
