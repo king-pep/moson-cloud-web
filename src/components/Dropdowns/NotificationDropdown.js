@@ -1,6 +1,5 @@
 import React from "react";
 import { createPopper } from "@popperjs/core";
-import { handleLogout } from "../../tokenService";
 
 const NotificationDropdown = () => {
     // dropdown props
