@@ -199,7 +199,13 @@ export default function CardTable({color}) {
                         </Button>
                     </div>
                 </div>
-
+                {/* Free Plan Suspension Message */}
+                <div className="px-4 py-3">
+                    <Alert severity="info">
+                        As a free plan user, your database will be suspended after 7 days of inactivity.
+                        Please restart it to resume usage.
+                    </Alert>
+                </div>
                 <div className="block w-full overflow-x-auto">
                     {errorMessage && (
                         <Alert severity="error" sx={{my: 2}}>
@@ -258,7 +264,6 @@ export default function CardTable({color}) {
                     </table>
                 </div>
             </div>
-            git commit -m "added more action button"
             <Modal open={showConnectionModal} onClose={() => setShowConnectionModal(false)}>
                 <Box
                     sx={{
