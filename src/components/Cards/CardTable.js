@@ -68,6 +68,82 @@ export default function CardTable({color}) {
         }
     };
 
+    const handleStopDatabase = async (db) => {
+        const token = localStorage.getItem("access_token");
+        const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/stop";
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({container_name: db.container_name}),
+            });
+
+            const data = await response.json();
+            if (data.resultCode === 0) {
+                await fetchDatabases();  // Refresh databases after stopping
+            } else {
+                setErrorMessage(data.friendlyCustomerMessage || "Failed to stop the database.");
+            }
+        } catch (error) {
+            setErrorMessage("Network error occurred while stopping the database.");
+            console.error("Network error:", error);
+        }
+    };
+
+    const handleRestartDatabase = async (db) => {
+        const token = localStorage.getItem("access_token");
+        const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/start";
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({container_name: db.container_name}),
+            });
+
+            const data = await response.json();
+            if (data.resultCode === 0) {
+                await fetchDatabases();  // Refresh databases after restarting
+            } else {
+                setErrorMessage(data.friendlyCustomerMessage || "Failed to restart the database.");
+            }
+        } catch (error) {
+            setErrorMessage("Network error occurred while restarting the database.");
+            console.error("Network error:", error);
+        }
+    };
+    const handleDeleteDatabase = async (db) => {
+        const token = localStorage.getItem("access_token");
+        const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/delete";
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({container_name: db.container_name}),
+            });
+
+            const data = await response.json();
+            if (data.resultCode === 0) {
+                await fetchDatabases();  // Refresh databases after deletion
+            } else {
+                setErrorMessage(data.friendlyCustomerMessage || "Failed to delete the database.");
+            }
+        } catch (error) {
+            setErrorMessage("Network error occurred while deleting the database.");
+            console.error("Network error:", error);
+        }
+    };
     const createDatabase = async () => {
         const token = localStorage.getItem("access_token");
         const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/create";
@@ -135,30 +211,47 @@ export default function CardTable({color}) {
                         <tr>
                             <th className="px-6 py-3 border-b text-left">Database Name</th>
                             <th className="px-6 py-3 border-b text-left">Database Type</th>
+                            <th className="px-6 py-3 border-b text-left">Status</th>
                             <th className="px-6 py-3 border-b text-left">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="3" className="text-center py-4">Loading...</td>
+                                <td colSpan="4" className="text-center py-4">Loading...</td>
                             </tr>
                         ) : databases.length > 0 ? (
                             databases.map((db, index) => (
                                 <tr key={index}>
                                     <td className="px-6 py-4 border-t text-left">{db.database_name}</td>
                                     <td className="px-6 py-4 border-t text-left">{db.database_type}</td>
+                                    <td className="px-6 py-4 border-t text-left">{db.container_status}</td>
                                     <td className="px-6 py-4 border-t text-left">
                                         <Button variant="contained" color="primary"
                                                 onClick={() => handleConnectClick(db)}>
                                             Connect
+                                        </Button>
+                                        {db.container_status === "running" ? (
+                                            <Button variant="contained" color="secondary" sx={{ml: 2}}
+                                                    onClick={() => handleStopDatabase(db)}>
+                                                Stop
+                                            </Button>
+                                        ) : (
+                                            <Button variant="contained" color="success" sx={{ml: 2}}
+                                                    onClick={() => handleRestartDatabase(db)}>
+                                                Restart
+                                            </Button>
+                                        )}
+                                        <Button variant="contained" color="error" sx={{ml: 2}}
+                                                onClick={() => handleDeleteDatabase(db)}>
+                                            Delete
                                         </Button>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="3" className="text-center py-4">No databases found for this user.</td>
+                                <td colSpan="4" className="text-center py-4">No databases found for this user.</td>
                             </tr>
                         )}
                         </tbody>
@@ -185,15 +278,15 @@ export default function CardTable({color}) {
                         <Typography variant="body1" sx={{mt: 2, wordBreak: 'break-all'}}>
                             Connection String: {showConnectionString ? (
                             <span>
-        <span style={{color: '#FF5722'}}>{selectedDatabase.database_type}://</span>
-        <span style={{color: '#3F51B5'}}>{selectedDatabase.username}</span>
-        <span style={{color: '#F44336'}}>:{selectedDatabase.password}</span>
-        <span style={{color: '#FF5722'}}>@</span>
-        <span style={{color: '#4CAF50'}}>{selectedDatabase.host}</span>
+                                <span style={{color: '#FF5722'}}>{selectedDatabase.database_type}://</span>
+                                <span style={{color: '#3F51B5'}}>{selectedDatabase.username}</span>
+                                <span style={{color: '#F44336'}}>:{selectedDatabase.password}</span>
+                                <span style={{color: '#FF5722'}}>@</span>
+                                <span style={{color: '#4CAF50'}}>{selectedDatabase.host}</span>
                                 <span style={{color: '#FF9800'}}>: {selectedDatabase.port}</span>
-        <span style={{color: '#9C27B0'}}>/</span>
-        <span style={{color: '#3F51B5'}}>{selectedDatabase.database_name}</span>
-    </span>
+                                <span style={{color: '#9C27B0'}}>/</span>
+                                <span style={{color: '#3F51B5'}}>{selectedDatabase.database_name}</span>
+                            </span>
                         ) : "************"}
                         </Typography>
                     )}
