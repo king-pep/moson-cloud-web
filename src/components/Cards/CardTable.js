@@ -258,7 +258,7 @@ export default function CardTable({color}) {
                     </table>
                 </div>
             </div>
-
+            git commit -m "added more action button"
             <Modal open={showConnectionModal} onClose={() => setShowConnectionModal(false)}>
                 <Box
                     sx={{
