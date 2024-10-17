@@ -31,13 +31,19 @@ export const exchangeCodeForTokens = async (authorizationCode) => {
         console.error('Error fetching tokens:', response.statusText);
     }
 };
+
+
 export const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     const keycloakServer = 'https://alpha.mosontech.co.za';
     const realmName = 'db-manager';
+    const clientId = 'docker-db-inst';
 
-    const logoutUrl = `${keycloakServer}/realms/${realmName}/protocol/openid-connect/logout`;
+    const postLogoutRedirectUri = encodeURIComponent(window.location.origin);
+
+    const logoutUrl = `${keycloakServer}/realms/${realmName}/protocol/openid-connect/logout?post_logout_redirect_uri=${postLogoutRedirectUri}&client_id=${clientId}`;
+
     console.log("Logout URL:", logoutUrl);
     window.location.href = logoutUrl;
 };
