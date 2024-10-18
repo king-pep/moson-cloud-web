@@ -6,6 +6,7 @@ export default function CardTable({color}) {
     const [databases, setDatabases] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showConnectionModal, setShowConnectionModal] = useState(false);
     const [newDatabase, setNewDatabase] = useState({
@@ -32,18 +33,32 @@ export default function CardTable({color}) {
             if (data.resultCode === 0) {
                 setDatabases(data.payload || []);
                 setErrorMessage(null);
+                setSuccessMessage( "Databases fetched successfully.");
             } else {
+                setSuccessMessage(null);
+
                 setErrorMessage(data.friendlyCustomerMessage || "An error occurred while fetching databases.");
                 setDatabases([]);
             }
         } catch (error) {
+            setSuccessMessage(null);
+
             setErrorMessage("Network error occurred while fetching databases.");
             console.error("Network error:", error);
         } finally {
             setLoading(false);
         }
     };
+    useEffect(() => {
+        if (successMessage || errorMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage(null);
+                setErrorMessage(null);
+            }, 5000);
 
+            return () => clearTimeout(timer);
+        }
+    }, [successMessage, errorMessage]);
     const fetchUserInfo = async () => {
         const token = localStorage.getItem("access_token");
         const url = "https://alpha.mosontech.co.za/realms/db-manager/protocol/openid-connect/userinfo";
@@ -84,13 +99,20 @@ export default function CardTable({color}) {
 
             const data = await response.json();
             if (data.resultCode === 0) {
-                await fetchDatabases();  // Refresh databases after stopping
+                await fetchDatabases();
+                setErrorMessage(null);
+                setSuccessMessage( "Database stopped successfully.");
             } else {
+                setSuccessMessage(null);
                 setErrorMessage(data.friendlyCustomerMessage || "Failed to stop the database.");
+
             }
         } catch (error) {
+            setSuccessMessage(null);
             setErrorMessage("Network error occurred while stopping the database.");
             console.error("Network error:", error);
+
+
         }
     };
 
@@ -110,11 +132,15 @@ export default function CardTable({color}) {
 
             const data = await response.json();
             if (data.resultCode === 0) {
-                await fetchDatabases();  // Refresh databases after restarting
+                await fetchDatabases();
+                setErrorMessage(null);
+                setSuccessMessage("Database restarted successfully.");
             } else {
+                setSuccessMessage(null);
                 setErrorMessage(data.friendlyCustomerMessage || "Failed to restart the database.");
             }
         } catch (error) {
+            setSuccessMessage(null);
             setErrorMessage("Network error occurred while restarting the database.");
             console.error("Network error:", error);
         }
@@ -135,11 +161,15 @@ export default function CardTable({color}) {
 
             const data = await response.json();
             if (data.resultCode === 0) {
-                await fetchDatabases();  // Refresh databases after deletion
+                await fetchDatabases();
+                setErrorMessage(null);
+                setSuccessMessage( "Database deleted successfully.");
             } else {
+                setSuccessMessage(null);
                 setErrorMessage(data.friendlyCustomerMessage || "Failed to delete the database.");
             }
         } catch (error) {
+            setSuccessMessage(null);
             setErrorMessage("Network error occurred while deleting the database.");
             console.error("Network error:", error);
         }
@@ -163,10 +193,13 @@ export default function CardTable({color}) {
                 await fetchDatabases();
                 setShowModal(false);
                 setErrorMessage(null);
+                setSuccessMessage( "Database created successfully.");
             } else {
+                setSuccessMessage(null);
                 setErrorMessage(data.friendlyCustomerMessage || "An error occurred while creating the database.");
             }
         } catch (error) {
+            setSuccessMessage(null);
             setErrorMessage("Network error occurred while creating the database.");
             console.error("Network error:", error);
         }
@@ -180,7 +213,7 @@ export default function CardTable({color}) {
 
     useEffect(() => {
         fetchDatabases();
-        fetchUserInfo();  // Fetch user info when the component mounts
+        fetchUserInfo();
     }, []);
 
     return (
@@ -210,6 +243,11 @@ export default function CardTable({color}) {
                     {errorMessage && (
                         <Alert severity="error" sx={{my: 2}}>
                             {errorMessage}
+                        </Alert>
+                    )}
+                    {successMessage && (
+                        <Alert severity="success" sx={{my: 2}}>
+                            {successMessage}
                         </Alert>
                     )}
                     <table className="items-center w-full bg-transparent border-collapse">
