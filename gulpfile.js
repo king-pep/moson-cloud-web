@@ -7,10 +7,10 @@ const currentDate = new Date().toLocaleDateString();
 
 gulp.task("inject-version-and-date", function () {
     return gulp
-        .src("src/components/Footers/FooterAdmin.js", {base: "./"})
-        .pipe(replace(/<span id="version">(.*)<\/span>/g, `<span id="version">${version}</span>`))
-        .pipe(replace(/<span id="date">(.*)<\/span>/g, `<span id="date">${currentDate}</span>`))
-        .pipe(gulp.dest("./"));
+        .src("build/index.html") // Target the built index.html in the build folder
+        .pipe(replace(/Version Placeholder/g, `${version}`)) // Replace version placeholder
+        .pipe(replace(/Date Placeholder/g, `${currentDate}`)) // Replace date placeholder
+        .pipe(gulp.dest("build")); // Save back into the build directory
 });
 
 
