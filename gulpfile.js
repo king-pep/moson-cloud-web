@@ -1,17 +1,25 @@
 const gulp = require("gulp");
 const gap = require("gulp-append-prepend");
 const replace = require("gulp-replace");
+const moment = require("moment");
 
-const version = "v1.1.0";
-const currentDate = new Date().toLocaleDateString();
+// Generate the version string with a timestamp
+const version = 'v1.1.' + moment().format('YYYY-MM-DD-HH-mm');
 
-gulp.task("inject-version-and-date", function () {
-    return gulp
-        .src("build/index.html") // Target the built index.html in the build folder
-        .pipe(replace(/Version Placeholder/g, `${version}`)) // Replace version placeholder
-        .pipe(replace(/Date Placeholder/g, `${currentDate}`)) // Replace date placeholder
-        .pipe(gulp.dest("build")); // Save back into the build directory
+// Task to replace the version in files and append the version to the project
+gulp.task('replace-version-and-append-to-project-version', function () {
+    return new Promise(function (resolve, reject) {
+        // Target the built index.html or main.js file in your build directory
+        gulp.src('./build/index.html') // or main.js if you're targeting JS
+            .pipe(replace('Version Placeholder', version)) // Replace the version placeholder
+            .pipe(replace('Date Placeholder', moment().format('YYYY-MM-DD'))) // Replace the date placeholder
+            .pipe(gulp.dest('./build', {overwrite: true})); // Overwrite the output in the build folder
+        resolve();
+    });
 });
+
+// Run the task with the command 'gulp replace-version-and-append-to-project-version'
+gulp.task('replace', gulp.series('replace-version-and-append-to-project-version'));
 
 
 gulp.task("licenses", async function () {
