@@ -8,7 +8,7 @@ export default function CardTable({color}) {
     const [databases, setDatabases] = useState([]);
     const [loading, setLoading] = useState(true);
     const [stopLoading, setStopLoading] = useState(null);
-    const [restartLoading, setRestartLoading] = useState(null);
+    const [setRestartLoading] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
