@@ -16,8 +16,7 @@ export default function FooterAdmin() {
                                 >
                                     Moson Cloud
                                 </a>
-                                . All rights reserved.
-                                {" "} - Version: <span id="version">v1.1.0</span> - Last Updated: <span
+                                {" "} - Version: <span id="version">v1.2.0</span> - Last Updated: <span
                                 id="date">Date Placeholder</span>
                             </div>
                         </div>
