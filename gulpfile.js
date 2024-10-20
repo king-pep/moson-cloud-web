@@ -1,5 +1,6 @@
 const gulp = require("gulp");
 const gap = require("gulp-append-prepend");
+const replace = require("gulp-replace");
 
 const version = "v1.1.0";
 const currentDate = new Date().toLocaleDateString();
