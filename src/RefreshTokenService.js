@@ -1,4 +1,4 @@
-import {redirectToLogin} from "./redirectToLogin";
+import {redirectToLogin} from "./RedirectToLogin";
 
 export const refreshAccessToken = async () => {
     const tokenUrl = 'https://alpha.mosontech.co.za/realms/db-manager/protocol/openid-connect/token';

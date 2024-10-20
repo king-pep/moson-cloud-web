@@ -1,6 +1,6 @@
 import React from "react";
 import {createPopper} from "@popperjs/core";
-import {handleLogout} from "../../tokenService";
+import {handleLogout} from "../../TokenService";
 
 const UserDropdown = () => {
     // dropdown props

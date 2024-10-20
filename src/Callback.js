@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { exchangeCodeForTokens } from './tokenService'; // Function to exchange code for tokens
+import { exchangeCodeForTokens } from './TokenService'; // Function to exchange code for tokens
 import { useHistory } from 'react-router-dom';
 import './spinner.css';
 import {ClipLoader} from "react-spinners";

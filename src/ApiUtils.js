@@ -1,4 +1,4 @@
-// apiUtils.js
+// ApiUtils.js
 
 export const handleResponse = async (response) => {
     if (response.status === 401) {

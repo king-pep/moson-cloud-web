@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Route} from 'react-router-dom';
-import {redirectToLogin} from './redirectToLogin';
-import {refreshAccessToken} from './refreshTokenService';
+import {redirectToLogin} from './RedirectToLogin';
+import {refreshAccessToken} from './RefreshTokenService';
 import {ClipLoader} from 'react-spinners';
 import './spinner.css';
 

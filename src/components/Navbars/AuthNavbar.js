@@ -11,7 +11,7 @@ export default function Navbar(props) {
     const history = useHistory();
 
     const handleRedirect = () => {
-        history.push('/admin/dashboard');
+        history.push('/admin/tables');
     };
     const [navbarOpen, setNavbarOpen] = React.useState(false);
     return (

@@ -1,6 +1,9 @@
 import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
 import {Modal, Box, Button, Typography, TextField, Select, MenuItem, Alert} from "@mui/material";
+import apiClient from "../../api/ApiClient";
+import databaseService from "../../services/DatabaseService";
+import userService from "../../services/UserService";
 
 export default function CardTable({color}) {
     const [databases, setDatabases] = useState([]);
@@ -10,196 +13,100 @@ export default function CardTable({color}) {
     const [showModal, setShowModal] = useState(false);
     const [showConnectionModal, setShowConnectionModal] = useState(false);
     const [newDatabase, setNewDatabase] = useState({
-        database_name: "",
-        database_type: "mysql",
+        database_name: "", database_type: "mysql",
     });
     const [selectedDatabase, setSelectedDatabase] = useState(null);
     const [showConnectionString, setShowConnectionString] = useState(false);
 
     const fetchDatabases = async () => {
-        const token = localStorage.getItem("access_token");
-        const url = "https://api-dev.mosontech.co.za/api/v1/infra/databases/list";
-
         try {
-            const response = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            const data = await response.json();
+            const data = await databaseService.fetchDatabases();
             if (data.resultCode === 0) {
                 setDatabases(data.payload || []);
                 setErrorMessage(null);
-                setSuccessMessage( "Databases fetched successfully.");
+                setSuccessMessage("Databases fetched successfully.");
             } else {
-                setSuccessMessage(null);
-
                 setErrorMessage(data.friendlyCustomerMessage || "An error occurred while fetching databases.");
                 setDatabases([]);
             }
         } catch (error) {
-            setSuccessMessage(null);
-
             setErrorMessage("Network error occurred while fetching databases.");
             console.error("Network error:", error);
         } finally {
             setLoading(false);
         }
     };
-    useEffect(() => {
-        if (successMessage || errorMessage) {
-            const timer = setTimeout(() => {
-                setSuccessMessage(null);
-                setErrorMessage(null);
-            }, 5000);
 
-            return () => clearTimeout(timer);
-        }
-    }, [successMessage, errorMessage]);
     const fetchUserInfo = async () => {
-        const token = localStorage.getItem("access_token");
-        const url = "https://alpha.mosontech.co.za/realms/db-manager/protocol/openid-connect/userinfo";
-
         try {
-            const response = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log("User Info:", data);
-            } else {
-                console.error("Failed to fetch user info:", response.statusText);
-            }
+            const data = await userService.fetchUserInfo();
+            console.log("User Info:", data);
         } catch (error) {
             console.error("Error fetching user info:", error);
         }
     };
 
     const handleStopDatabase = async (db) => {
-        const token = localStorage.getItem("access_token");
-        const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/stop";
-
         try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({container_name: db.container_name}),
-            });
-
-            const data = await response.json();
+            const data = await databaseService.stopDatabase(db.container_name);
             if (data.resultCode === 0) {
                 await fetchDatabases();
                 setErrorMessage(null);
-                setSuccessMessage( "Database stopped successfully.");
+                setSuccessMessage("Database stopped successfully.");
             } else {
-                setSuccessMessage(null);
                 setErrorMessage(data.friendlyCustomerMessage || "Failed to stop the database.");
-
             }
         } catch (error) {
-            setSuccessMessage(null);
             setErrorMessage("Network error occurred while stopping the database.");
             console.error("Network error:", error);
-
-
         }
     };
 
     const handleRestartDatabase = async (db) => {
-        const token = localStorage.getItem("access_token");
-        const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/start";
-
         try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({container_name: db.container_name}),
-            });
-
-            const data = await response.json();
+            const data = await databaseService.restartDatabase(db.container_name);
             if (data.resultCode === 0) {
                 await fetchDatabases();
                 setErrorMessage(null);
                 setSuccessMessage("Database restarted successfully.");
             } else {
-                setSuccessMessage(null);
                 setErrorMessage(data.friendlyCustomerMessage || "Failed to restart the database.");
             }
         } catch (error) {
-            setSuccessMessage(null);
             setErrorMessage("Network error occurred while restarting the database.");
             console.error("Network error:", error);
         }
     };
+
     const handleDeleteDatabase = async (db) => {
-        const token = localStorage.getItem("access_token");
-        const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/delete";
-
         try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({container_name: db.container_name}),
-            });
-
-            const data = await response.json();
+            const data = await databaseService.deleteDatabase(db.container_name);
             if (data.resultCode === 0) {
                 await fetchDatabases();
                 setErrorMessage(null);
-                setSuccessMessage( "Database deleted successfully.");
+                setSuccessMessage("Database deleted successfully.");
             } else {
-                setSuccessMessage(null);
                 setErrorMessage(data.friendlyCustomerMessage || "Failed to delete the database.");
             }
         } catch (error) {
-            setSuccessMessage(null);
             setErrorMessage("Network error occurred while deleting the database.");
             console.error("Network error:", error);
         }
     };
+
+
     const createDatabase = async () => {
-        const token = localStorage.getItem("access_token");
-        const url = "https://api-dev.mosontech.co.za/api/v1/infra/containers/create";
-
         try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(newDatabase),
-            });
-
-            const data = await response.json();
+            const data = await databaseService.createDatabase(newDatabase);
             if (data.resultCode === 0) {
                 await fetchDatabases();
                 setShowModal(false);
                 setErrorMessage(null);
-                setSuccessMessage( "Database created successfully.");
+                setSuccessMessage("Database created successfully.");
             } else {
-                setSuccessMessage(null);
                 setErrorMessage(data.friendlyCustomerMessage || "An error occurred while creating the database.");
             }
         } catch (error) {
-            setSuccessMessage(null);
             setErrorMessage("Network error occurred while creating the database.");
             console.error("Network error:", error);
         }
@@ -212,12 +119,21 @@ export default function CardTable({color}) {
     };
 
     useEffect(() => {
+        if (successMessage || errorMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage(null);
+                setErrorMessage(null);
+            }, 5000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [successMessage, errorMessage]);
+    useEffect(() => {
         fetchDatabases();
         fetchUserInfo();
     }, []);
 
-    return (
-        <>
+    return (<>
             <div
                 className={`relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded ${color === "light" ? "bg-white" : "bg-lightBlue-900 text-white"}`}>
                 <div className="rounded-t mb-0 px-4 py-3 border-0">
@@ -240,16 +156,12 @@ export default function CardTable({color}) {
                     </Alert>
                 </div>
                 <div className="block w-full overflow-x-auto">
-                    {errorMessage && (
-                        <Alert severity="error" sx={{my: 2}}>
+                    {errorMessage && (<Alert severity="error" sx={{my: 2}}>
                             {errorMessage}
-                        </Alert>
-                    )}
-                    {successMessage && (
-                        <Alert severity="success" sx={{my: 2}}>
+                        </Alert>)}
+                    {successMessage && (<Alert severity="success" sx={{my: 2}}>
                             {successMessage}
-                        </Alert>
-                    )}
+                        </Alert>)}
                     <table className="items-center w-full bg-transparent border-collapse">
                         <thead>
                         <tr>
@@ -260,13 +172,9 @@ export default function CardTable({color}) {
                         </tr>
                         </thead>
                         <tbody>
-                        {loading ? (
-                            <tr>
+                        {loading ? (<tr>
                                 <td colSpan="4" className="text-center py-4">Loading...</td>
-                            </tr>
-                        ) : databases.length > 0 ? (
-                            databases.map((db, index) => (
-                                <tr key={index}>
+                            </tr>) : databases.length > 0 ? (databases.map((db, index) => (<tr key={index}>
                                     <td className="px-6 py-4 border-t text-left">{db.database_name}</td>
                                     <td className="px-6 py-4 border-t text-left">{db.database_type}</td>
                                     <td className="px-6 py-4 border-t text-left">{db.container_status}</td>
@@ -279,25 +187,18 @@ export default function CardTable({color}) {
                                             <Button variant="contained" color="secondary" sx={{ml: 2}}
                                                     onClick={() => handleStopDatabase(db)}>
                                                 Stop
-                                            </Button>
-                                        ) : (
-                                            <Button variant="contained" color="success" sx={{ml: 2}}
-                                                    onClick={() => handleRestartDatabase(db)}>
+                                            </Button>) : (<Button variant="contained" color="success" sx={{ml: 2}}
+                                                                  onClick={() => handleRestartDatabase(db)}>
                                                 Restart
-                                            </Button>
-                                        )}
+                                            </Button>)}
                                         <Button variant="contained" color="error" sx={{ml: 2}}
                                                 onClick={() => handleDeleteDatabase(db)}>
                                             Delete
                                         </Button>
                                     </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
+                                </tr>))) : (<tr>
                                 <td colSpan="4" className="text-center py-4">No databases found for this user.</td>
-                            </tr>
-                        )}
+                            </tr>)}
                         </tbody>
                     </table>
                 </div>
@@ -317,10 +218,8 @@ export default function CardTable({color}) {
                     }}
                 >
                     <Typography variant="h6" component="h2">Database Connection</Typography>
-                    {selectedDatabase && (
-                        <Typography variant="body1" sx={{mt: 2, wordBreak: 'break-all'}}>
-                            Connection String: {showConnectionString ? (
-                            <span>
+                    {selectedDatabase && (<Typography variant="body1" sx={{mt: 2, wordBreak: 'break-all'}}>
+                            Connection String: {showConnectionString ? (<span>
                                 <span style={{color: '#FF5722'}}>{selectedDatabase.database_type}://</span>
                                 <span style={{color: '#3F51B5'}}>{selectedDatabase.username}</span>
                                 <span style={{color: '#F44336'}}>:{selectedDatabase.password}</span>
@@ -329,10 +228,8 @@ export default function CardTable({color}) {
                                 <span style={{color: '#FF9800'}}>: {selectedDatabase.port}</span>
                                 <span style={{color: '#9C27B0'}}>/</span>
                                 <span style={{color: '#3F51B5'}}>{selectedDatabase.database_name}</span>
-                            </span>
-                        ) : "************"}
-                        </Typography>
-                    )}
+                            </span>) : "************"}
+                        </Typography>)}
                     <Button variant="outlined" sx={{mt: 2}}
                             onClick={() => setShowConnectionString(!showConnectionString)}>
                         {showConnectionString ? "Hide Connection String" : "Show Connection String"}
@@ -378,8 +275,7 @@ export default function CardTable({color}) {
                     </Button>
                 </Box>
             </Modal>
-        </>
-    );
+        </>);
 }
 
 CardTable.defaultProps = {
