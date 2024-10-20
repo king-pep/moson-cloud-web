@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
 import {Modal, Box, Button, Typography, TextField, Select, MenuItem, Alert} from "@mui/material";
-import apiClient from "../../api/ApiClient";
 import databaseService from "../../services/DatabaseService";
 import userService from "../../services/UserService";
 
