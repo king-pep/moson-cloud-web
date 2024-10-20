@@ -11,7 +11,7 @@ pipeline {
         NODE_HOME = "/usr/local/bin/node"
         PATH = "${NODE_HOME}/bin:${PATH}"
         DEPLOY_BASE_PATH = '/var/www/html'
-        DEPLOY_PATH = "${DEPLOY_BASE_PATH}/${APP}"
+        DEPLOY_PATH = "${DEPLOY_BASE_PATH}/${APP}/${params.ENVIRONMENT}"
     }
     tools {
         nodejs 'NodeJS'
@@ -30,12 +30,6 @@ pipeline {
                 sh 'npm install'
             }
         }
-
-//         stage('Run Tests') {
-//             steps {
-//                 sh 'npm test'
-//             }
-//         }
 
         stage('Build') {
             steps {
