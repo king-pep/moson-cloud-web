@@ -7,7 +7,7 @@ const moment = require("moment");
 const version = 'v1.1.' + moment().format('YYYY-MM-DD-HH-mm');
 
 // Task to replace the version in files and append the version to the project
-gulp.task('replace-version-and-date', function () {
+gulp.task('replace-version-and-append-to-project-version', function () {
     return gulp.src('./build/index.html') // Use build/index.html or main.js depending on the target
         .pipe(replace('Version Placeholder', version)) // Replace version placeholder
         .pipe(replace('Date Placeholder', moment().format('YYYY-MM-DD'))) // Replace date placeholder
