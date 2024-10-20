@@ -1,6 +1,21 @@
 import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
-import {CircularProgress, Modal, Box, Button, Typography, TextField, Select, MenuItem, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
+import {
+    CircularProgress,
+    Modal,
+    Box,
+    Button,
+    Typography,
+    TextField,
+    Select,
+    MenuItem,
+    Alert,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle
+} from "@mui/material";
 import databaseService from "../../services/DatabaseService";
 import userService from "../../services/UserService";
 
@@ -8,14 +23,15 @@ export default function CardTable({color}) {
     const [databases, setDatabases] = useState([]);
     const [loading, setLoading] = useState(true);
     const [stopLoading, setStopLoading] = useState(null);
-    const [setRestartLoading] = useState(null);
+    const [restartLoading, setRestartLoading] = useState(null);
+    const [planType, setPlanType] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showConnectionModal, setShowConnectionModal] = useState(false);
-    const [confirmationDialog, setConfirmationDialog] = useState({ open: false, action: null, database: null });
+    const [confirmationDialog, setConfirmationDialog] = useState({open: false, action: null, database: null});
     const [newDatabase, setNewDatabase] = useState({
         database_name: "",
         database_type: "mysql",
@@ -46,6 +62,7 @@ export default function CardTable({color}) {
         try {
             const data = await userService.fetchUserInfo();
             console.log("User Info:", data);
+            setPlanType(data.payload.plan_type);
         } catch (error) {
             console.error("Error fetching user info:", error);
         }
@@ -55,7 +72,7 @@ export default function CardTable({color}) {
         setConfirmationDialog({
             open: true,
             action,
-            database: db
+            database: db,
         });
     };
 
@@ -117,7 +134,7 @@ export default function CardTable({color}) {
     };
 
     const executeAction = () => {
-        const { action, database } = confirmationDialog;
+        const {action, database} = confirmationDialog;
         if (action === "stop") {
             handleStopDatabase(database);
         } else if (action === "restart") {
@@ -125,19 +142,18 @@ export default function CardTable({color}) {
         } else if (action === "delete") {
             handleDeleteDatabase(database);
         }
-        setConfirmationDialog({ open: false, action: null, database: null });
+        setConfirmationDialog({open: false, action: null, database: null});
     };
 
     const createDatabase = async () => {
         setIsCreating(true);
-
         try {
             const data = await databaseService.createDatabase(newDatabase);
             if (data.resultCode === 0) {
                 await fetchDatabases();
                 setShowModal(false);
                 setErrorMessage(null);
-                setSuccessMessage("Database created successfully. Please click on restart to start the database.");
+                setSuccessMessage("Database created successfully.");
             } else {
                 setErrorMessage(data.friendlyCustomerMessage || "An error occurred while creating the database.");
             }
@@ -171,201 +187,210 @@ export default function CardTable({color}) {
         fetchUserInfo();
     }, []);
 
-    return (<>
-        <div
-            className={`relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded ${color === "light" ? "bg-white" : "bg-lightBlue-900 text-white"}`}>
-            <div className="rounded-t mb-0 px-4 py-3 border-0">
-                <div className="flex flex-wrap items-center justify-between">
-                    <div className="relative w-full px-4 max-w-full flex-grow flex-1">
-                        <h3 className={`font-semibold text-lg ${color === "light" ? "text-blueGray-700" : "text-white"}`}>
-                            User Databases
-                        </h3>
+    return (
+        <>
+            <div
+                className={`relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded ${color === "light" ? "bg-white" : "bg-lightBlue-900 text-white"}`}>
+                <div className="rounded-t mb-0 px-4 py-3 border-0">
+                    <div className="flex flex-wrap items-center justify-between">
+                        <div className="relative w-full px-4 max-w-full flex-grow flex-1">
+                            <h3 className={`font-semibold text-lg ${color === "light" ? "text-blueGray-700" : "text-white"}`}>
+                                User Databases
+                            </h3>
+                        </div>
+                        <Button variant="contained" color="primary" onClick={() => setShowModal(true)}>
+                            Create Database
+                        </Button>
                     </div>
-                    <Button variant="contained" color="primary" onClick={() => setShowModal(true)}>
-                        Create Database
-                    </Button>
                 </div>
-            </div>
-            {/* Free Plan Suspension Message */}
-            <div className="px-4 py-3">
-                <Alert severity="info">
-                    As a free plan user, your database will be suspended after 7 days of inactivity.
-                    Please restart it to resume usage.
-                </Alert>
-            </div>
-            <div className="block w-full overflow-x-auto">
-                {errorMessage && (<Alert severity="error" sx={{my: 2}}>
-                    {errorMessage}
-                </Alert>)}
-                {successMessage && (<Alert severity="success" sx={{my: 2}}>
-                    {successMessage}
-                </Alert>)}
-                <table className="items-center w-full bg-transparent border-collapse">
-                    <thead>
-                    <tr>
-                        <th className="px-6 py-3 border-b text-left">Database Name</th>
-                        <th className="px-6 py-3 border-b text-left">Database Type</th>
-                        <th className="px-6 py-3 border-b text-left">Status</th>
-                        <th className="px-6 py-3 border-b text-left">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {loading ? (
+                <div className="px-4 py-3">
+                    <Alert severity="info">
+                        You are currently using the **trial version** of the system. After the 3-month trial period, you
+                        will be asked to subscribe to our **Premium Plan** if you need more than **2 databases**, which
+                        is the limit for the **Free Plan**.
+                        We are continuously improving the system to enhance your experience. If you decide to upgrade,
+                        you'll unlock more features like **unlimited databases**, **priority support**, and **advanced
+                        monitoring**.
+                    </Alert>
+                </div>
+                <div className="block w-full overflow-x-auto">
+                    {errorMessage && (
+                        <Alert severity="error" sx={{my: 2}}>
+                            {errorMessage}
+                        </Alert>
+                    )}
+                    {successMessage && (
+                        <Alert severity="success" sx={{my: 2}}>
+                            {successMessage}
+                        </Alert>
+                    )}
+                    <table className="items-center w-full bg-transparent border-collapse">
+                        <thead>
                         <tr>
-                            <td colSpan="4" className="text-center py-4">
-                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
-                                    <CircularProgress/>
-                                </Box>
-                            </td>
+                            <th className="px-6 py-3 border-b text-left">Database Name</th>
+                            <th className="px-6 py-3 border-b text-left">Database Type</th>
+                            <th className="px-6 py-3 border-b text-left">Status</th>
+                            <th className="px-6 py-3 border-b text-left">Actions</th>
                         </tr>
-                    ) : databases.length > 0 ? (
-                        databases.map((db, index) => (
-                            <tr key={index}>
-                                <td className="px-6 py-4 border-t text-left">{db.database_name}</td>
-                                <td className="px-6 py-4 border-t text-left">{db.database_type}</td>
-                                <td className="px-6 py-4 border-t text-left">{db.container_status}</td>
-                                <td className="px-6 py-4 border-t text-left">
-                                    <Button variant="contained" color="primary" onClick={() => handleConnectClick(db)}>
-                                        Connect
-                                    </Button>
-                                    {stopLoading === db.container_name ? (
-                                        <CircularProgress size={24} sx={{ml: 2}}/>
-                                    ) : db.container_status === "running" ? (
-                                        <Button variant="contained" color="secondary" sx={{ml: 2}}
-                                                onClick={() => confirmAction("stop", db)}>
-                                            Stop
-                                        </Button>
-                                    ) : (
-                                        <Button variant="contained" color="success" sx={{ml: 2}}
-                                                onClick={() => confirmAction("restart", db)}>
-                                            Restart
-                                        </Button>
-                                    )}
-                                    {deleteLoading === db.container_name ? (
-                                        <CircularProgress size={24} sx={{ml: 2}}/>
-                                    ) : (
-                                        <Button variant="contained" color="error" sx={{ml: 2}}
-                                                onClick={() => confirmAction("delete", db)}>
-                                            Delete
-                                        </Button>
-                                    )}
+                        </thead>
+                        <tbody>
+                        {loading ? (
+                            <tr>
+                                <td colSpan="4" className="text-center py-4">
+                                    <Box sx={{display: "flex", justifyContent: "center"}}>
+                                        <CircularProgress/>
+                                    </Box>
                                 </td>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="4" className="text-center py-4">No databases found for this user.</td>
-                        </tr>
-                    )}
-                    </tbody>
-                </table>
+                        ) : databases.length > 0 ? (
+                            databases.map((db, index) => (
+                                <tr key={index}>
+                                    <td className="px-6 py-4 border-t text-left">{db.database_name}</td>
+                                    <td className="px-6 py-4 border-t text-left">{db.database_type}</td>
+                                    <td className="px-6 py-4 border-t text-left">{db.container_status}</td>
+                                    <td className="px-6 py-4 border-t text-left">
+                                        <Button variant="contained" color="primary"
+                                                onClick={() => handleConnectClick(db)}>
+                                            Connect
+                                        </Button>
+                                        {stopLoading === db.container_name ? (
+                                            <CircularProgress size={24} sx={{ml: 2}}/>
+                                        ) : db.container_status === "running" ? (
+                                            <Button variant="contained" color="secondary" sx={{ml: 2}}
+                                                    onClick={() => confirmAction("stop", db)}>
+                                                Stop
+                                            </Button>
+                                        ) : restartLoading === db.container_name ? (
+                                            <CircularProgress size={24} sx={{ml: 2}}/>
+                                        ) : (
+                                            <Button variant="contained" color="success" sx={{ml: 2}}
+                                                    onClick={() => confirmAction("restart", db)}>
+                                                Restart
+                                            </Button>
+                                        )}
+                                        {deleteLoading === db.container_name ? (
+                                            <CircularProgress size={24} sx={{ml: 2}}/>
+                                        ) : (
+                                            <Button variant="contained" color="error" sx={{ml: 2}}
+                                                    onClick={() => confirmAction("delete", db)}>
+                                                Delete
+                                            </Button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="text-center py-4">No databases found for this user.</td>
+                            </tr>
+                        )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        {/* Confirmation Dialog */}
-        <Dialog
-            open={confirmationDialog.open}
-            onClose={() => setConfirmationDialog({ open: false, action: null, database: null })}
-        >
-            <DialogTitle>{"Confirm Action"}</DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    Are you sure you want to {confirmationDialog.action} the database "{confirmationDialog.database?.database_name}"?
-                </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={() => setConfirmationDialog({ open: false, action: null, database: null })}>
-                    Cancel
-                </Button>
-                <Button onClick={executeAction} color="primary">
-                    Confirm
-                </Button>
-            </DialogActions>
-        </Dialog>
-
-        <Modal open={showConnectionModal} onClose={() => setShowConnectionModal(false)}>
-            <Box
-                sx={{
-                    bgcolor: 'background.paper',
-                    p: 4,
-                    borderRadius: 2,
-                    boxShadow: 24,
-                    maxWidth: '80%',
-                    minWidth: 400,
-                    mx: 'auto',
-                    mt: '20vh',
-                    overflow: 'auto',
-                }}
+            <Dialog
+                open={confirmationDialog.open}
+                onClose={() => setConfirmationDialog({open: false, action: null, database: null})}
             >
-                <Typography variant="h6" component="h2">Database Connection</Typography>
-                {selectedDatabase && (<Typography variant="body1" sx={{mt: 2, wordBreak: 'break-all'}}>
-                    Connection String: {showConnectionString ? (<span>
-                                <span style={{color: '#FF5722'}}>{selectedDatabase.database_type}://</span>
-                                <span style={{color: '#3F51B5'}}>{selectedDatabase.username}</span>
-                                <span style={{color: '#F44336'}}>:{selectedDatabase.password}</span>
-                                <span style={{color: '#FF5722'}}>@</span>
-                                <span style={{color: '#4CAF50'}}>{selectedDatabase.host}</span>
-                                <span style={{color: '#FF9800'}}>: {selectedDatabase.port}</span>
-                                <span style={{color: '#9C27B0'}}>/</span>
-                                <span style={{color: '#3F51B5'}}>{selectedDatabase.database_name}</span>
-                            </span>) : "************"}
-                </Typography>)}
-                <Button variant="outlined" sx={{mt: 2}}
-                        onClick={() => setShowConnectionString(!showConnectionString)}>
-                    {showConnectionString ? "Hide Connection String" : "Show Connection String"}
-                </Button>
-            </Box>
-        </Modal>
+                <DialogTitle>{"Confirm Action"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to {confirmationDialog.action} the database
+                        "{confirmationDialog.database?.database_name}"?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmationDialog({open: false, action: null, database: null})}>
+                        Cancel
+                    </Button>
+                    <Button onClick={executeAction} color="primary">
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
-        <Modal open={showModal} onClose={() => setShowModal(false)}>
-            <Box sx={{
-                bgcolor: 'background.paper',
-                p: 4,
-                borderRadius: 2,
-                boxShadow: 24,
-                maxWidth: 500,
-                mx: 'auto',
-                mt: '20vh'
-            }}>
-                <Typography variant="h6" component="h2">Create New Database</Typography>
-                <TextField
-                    fullWidth
-                    label="Database Name"
-                    variant="outlined"
-                    margin="normal"
-                    value={newDatabase.database_name}
-                    onChange={(e) => setNewDatabase({...newDatabase, database_name: e.target.value})}
-                />
-                <Select
-                    fullWidth
-                    value={newDatabase.database_type}
-                    onChange={(e) => setNewDatabase({...newDatabase, database_type: e.target.value})}
-                    variant="outlined"
-                    margin="normal"
+            <Modal open={showConnectionModal} onClose={() => setShowConnectionModal(false)}>
+                <Box
+                    sx={{
+                        bgcolor: "background.paper",
+                        p: 4,
+                        borderRadius: 2,
+                        boxShadow: 24,
+                        maxWidth: "80%",
+                        minWidth: 400,
+                        mx: "auto",
+                        mt: "20vh",
+                        overflow: "auto",
+                    }}
                 >
-                    <MenuItem value="mysql">MySQL</MenuItem>
-                    <MenuItem value="postgres">PostgreSQL</MenuItem>
-                    <MenuItem value="mongodb">MongoDB</MenuItem>
-                </Select>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{mt: 2}}
-                    onClick={createDatabase}
-                    disabled={isCreating}
-                >
-                    {isCreating ? (
-                        <CircularProgress size={24} sx={{color: 'white'}}/>
-                    ) : (
-                        "Create Database"
+                    <Typography variant="h6" component="h2">Database Connection</Typography>
+                    {selectedDatabase && (
+                        <Typography variant="body1" sx={{mt: 2, wordBreak: "break-all"}}>
+                            Connection String: {showConnectionString ? (
+                            <span>
+                                <span style={{color: "#FF5722"}}>{selectedDatabase.database_type}://</span>
+                                <span style={{color: "#3F51B5"}}>{selectedDatabase.username}</span>
+                                <span style={{color: "#F44336"}}>:{selectedDatabase.password}</span>
+                                <span style={{color: "#FF5722"}}>@</span>
+                                <span style={{color: "#4CAF50"}}>{selectedDatabase.host}</span>
+                                <span style={{color: "#FF9800"}}>: {selectedDatabase.port}</span>
+                                <span style={{color: "#9C27B0"}}>/</span>
+                                <span style={{color: "#3F51B5"}}>{selectedDatabase.database_name}</span>
+                            </span>
+                        ) : "************"}
+                        </Typography>
                     )}
-                </Button>
-                <Button variant="text" sx={{mt: 2}} onClick={() => setShowModal(false)}>
-                    Cancel
-                </Button>
-            </Box>
-        </Modal>
-    </>);
+                    <Button variant="outlined" sx={{mt: 2}}
+                            onClick={() => setShowConnectionString(!showConnectionString)}>
+                        {showConnectionString ? "Hide Connection String" : "Show Connection String"}
+                    </Button>
+                </Box>
+            </Modal>
+
+            <Modal open={showModal} onClose={() => setShowModal(false)}>
+                <Box
+                    sx={{
+                        bgcolor: "background.paper",
+                        p: 4,
+                        borderRadius: 2,
+                        boxShadow: 24,
+                        maxWidth: 500,
+                        mx: "auto",
+                        mt: "20vh",
+                    }}
+                >
+                    <Typography variant="h6" component="h2">Create New Database</Typography>
+                    <TextField
+                        fullWidth
+                        label="Database Name"
+                        variant="outlined"
+                        margin="normal"
+                        value={newDatabase.database_name}
+                        onChange={(e) => setNewDatabase({...newDatabase, database_name: e.target.value})}
+                    />
+                    <Select
+                        fullWidth
+                        value={newDatabase.database_type}
+                        onChange={(e) => setNewDatabase({...newDatabase, database_type: e.target.value})}
+                        variant="outlined"
+                        margin="normal"
+                    >
+                        <MenuItem value="mysql">MySQL</MenuItem>
+                        <MenuItem value="postgres">PostgreSQL</MenuItem>
+                        <MenuItem value="mongodb">MongoDB</MenuItem>
+                    </Select>
+                    <Button variant="contained" color="primary" sx={{mt: 2}} onClick={createDatabase}
+                            disabled={isCreating}>
+                        {isCreating ? <CircularProgress size={24} sx={{color: "white"}}/> : "Create Database"}
+                    </Button>
+                    <Button variant="text" sx={{mt: 2}} onClick={() => setShowModal(false)}>
+                        Cancel
+                    </Button>
+                </Box>
+            </Modal>
+        </>
+    );
 }
 
 CardTable.defaultProps = {

@@ -2,20 +2,29 @@ import axios from 'axios';
 
 const apiClient = axios.create({
     baseURL: 'https://api-dev.mosontech.co.za/api/v1',
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
 
-apiClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        // Remove Content-Type for GET requests
+        if (config.method === 'get') {
+            delete config.headers['Content-Type'];
+        } else {
+            // Set Content-Type for POST/PUT requests
+            config.headers['Content-Type'] = 'application/json';
+        }
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-    return config;
-}, (error) => {
-    return Promise.reject(error);
-});
+);
 
 apiClient.interceptors.response.use(
     (response) => response,
