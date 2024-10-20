@@ -26,7 +26,7 @@ export default function CardSettings() {
                 email: data.payload.email,
                 firstName: firstName,
                 lastName: lastName,
-                planType: data.payload.plan_type,
+             //   planType: data.payload.plan_type,
                 maxDatabases: data.payload.max_databases,
             });
         } catch (error) {

@@ -24,7 +24,7 @@ export default function CardTable({color}) {
     const [loading, setLoading] = useState(true);
     const [stopLoading, setStopLoading] = useState(null);
     const [restartLoading, setRestartLoading] = useState(null);
-    const [planType, setPlanType] = useState(null);
+   // const [planType, setPlanType] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
@@ -62,7 +62,7 @@ export default function CardTable({color}) {
         try {
             const data = await userService.fetchUserInfo();
             console.log("User Info:", data);
-            setPlanType(data.payload.plan_type);
+           // setPlanType(data.payload.plan_type);
         } catch (error) {
             console.error("Error fetching user info:", error);
         }
