@@ -153,7 +153,7 @@ export default function CardTable({color}) {
                 await fetchDatabases();
                 setShowModal(false);
                 setErrorMessage(null);
-                setSuccessMessage("Database created successfully.");
+                setSuccessMessage("Database created successfully. Please hit restart to start up the database.");
             } else {
                 setErrorMessage(data.friendlyCustomerMessage || "An error occurred while creating the database.");
             }
