@@ -378,7 +378,7 @@ export default function CardTable({color}) {
                     >
                         <MenuItem value="mysql">MySQL</MenuItem>
                         <MenuItem value="postgres">PostgreSQL</MenuItem>
-                        <MenuItem value="mongodb">MongoDB</MenuItem>
+                        <MenuItem value="mongo">MongoDB</MenuItem>
                     </Select>
                     <Button variant="contained" color="primary" sx={{mt: 2}} onClick={createDatabase}
                             disabled={isCreating}>
